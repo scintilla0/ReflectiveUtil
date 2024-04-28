@@ -14,7 +14,7 @@ import java.util.Locale;
  * <br>
  * This class Provides an assortment of reflective operation methods.<br>
  * All catchable exceptions thrown by this class are wrapped into <b>RuntimeException</b>s.
- * @version 1.1.9 - 2024-04-25
+ * @version 1.1.10 - 2024-04-28
  * @author scintilla0
  */
 @SuppressWarnings("unchecked")
@@ -45,7 +45,7 @@ public class ReflectiveUtil {
 	 */
 	public static <ObjectType, ReturnType> ReturnType getField(ObjectType object, String fieldName, Class<ReturnType> returnClass) {
 		try {
-			Method method = fetchMethodThrows(object.getClass(), "get" + EmbeddedStringUtil.upperCamelCase(fieldName), returnClass);
+			Method method = fetchMethodThrows(object.getClass(), "get" + EmbeddedStringUtil.upperCamelCase(fieldName));
             return (ReturnType) method.invoke(object);
 		} catch (NoSuchMethodException | IllegalArgumentException | IllegalAccessException | InvocationTargetException caught) {
 			Field field = fetchField(object.getClass(), fieldName);
