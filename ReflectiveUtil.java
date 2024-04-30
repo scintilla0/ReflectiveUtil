@@ -1,3 +1,6 @@
+import java.beans.IntrospectionException;
+import java.beans.Introspector;
+import java.beans.PropertyDescriptor;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -5,7 +8,6 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Locale;
 
 /**
  * Copyright (c) 2024 scintilla0 (<a href="https://github.com/scintilla0">https://github.com/scintilla0</a>)<br>
@@ -14,7 +16,7 @@ import java.util.Locale;
  * <br>
  * This class Provides an assortment of reflective operation methods.<br>
  * All catchable exceptions thrown by this class are wrapped into <b>RuntimeException</b>s.
- * @version 1.1.10 - 2024-04-28
+ * @version 1.1.11 - 2024-04-30
  * @author scintilla0
  */
 @SuppressWarnings("unchecked")
@@ -45,9 +47,8 @@ public class ReflectiveUtil {
 	 */
 	public static <ObjectType, ReturnType> ReturnType getField(ObjectType object, String fieldName, Class<ReturnType> returnClass) {
 		try {
-			Method method = fetchMethodThrows(object.getClass(), "get" + EmbeddedStringUtil.upperCamelCase(fieldName));
-            return (ReturnType) method.invoke(object);
-		} catch (NoSuchMethodException | IllegalArgumentException | IllegalAccessException | InvocationTargetException caught) {
+			return (ReturnType) fetchPropertyDescriptor(object.getClass(), fieldName).getReadMethod().invoke(object);
+		} catch (IntrospectionException | NullPointerException | IllegalAccessException | InvocationTargetException caught) {
 			Field field = fetchField(object.getClass(), fieldName);
 			return getField(object, field, returnClass);
 		}
@@ -73,7 +74,7 @@ public class ReflectiveUtil {
 		boolean isAccessible = field.isAccessible();
 		field.setAccessible(true);
 		try {
-            return (ReturnType) field.get(object);
+			return (ReturnType) field.get(object);
 		} catch (IllegalArgumentException | IllegalAccessException exception) {
 			throw new RuntimeException(exception);
 		} finally {
@@ -93,11 +94,10 @@ public class ReflectiveUtil {
 	 */
 	public static <ObjectType> void setField(ObjectType object, String fieldName, Object value) {
 		try {
-			Method method = fetchMethodThrows(object.getClass(), "set" + EmbeddedStringUtil.upperCamelCase(fieldName), value.getClass());
-			method.invoke(object, value);
+			fetchPropertyDescriptor(object.getClass(), fieldName).getWriteMethod().invoke(object, value);
 		} catch (IllegalArgumentException exception) {
 			throw new IllegalArgumentException("Incorrect value type: " + value.getClass().getName());
-		} catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException caught) {
+		} catch (IntrospectionException | NullPointerException | IllegalAccessException | InvocationTargetException caught) {
 			Field field = fetchField(object.getClass(), fieldName);
 			setField(object, field, value);
 		}
@@ -127,6 +127,11 @@ public class ReflectiveUtil {
 		} finally {
 			field.setAccessible(isAccessible);
 		}
+	}
+
+	private static PropertyDescriptor fetchPropertyDescriptor(Class<?> objectClass, String fieldName) throws IntrospectionException {
+		return Arrays.stream(Introspector.getBeanInfo(objectClass).getPropertyDescriptors())
+				.filter(property -> property.getName().equals(fieldName)).findAny().orElse(null);
 	}
 
 	/**
@@ -165,17 +170,13 @@ public class ReflectiveUtil {
 	 */
 	public static <ObjectType> Method fetchMethod(Class<ObjectType> objectClass, String methodName, Class<?>... argumentTypes) {
 		try {
-			return fetchMethodThrows(objectClass, methodName, argumentTypes);
+			try {
+				return objectClass.getDeclaredMethod(methodName, argumentTypes);
+			} catch (NoSuchMethodException caught) {
+				return objectClass.getMethod(methodName, argumentTypes);
+			}
 		} catch (NoSuchMethodException exception) {
 			throw new RuntimeException(exception);
-		}
-	}
-
-	private static <ObjectType> Method fetchMethodThrows(Class<ObjectType> objectClass, String methodName, Class<?>... argumentTypes) throws NoSuchMethodException {
-		try {
-			return objectClass.getDeclaredMethod(methodName, argumentTypes);
-		} catch (NoSuchMethodException caught) {
-			return objectClass.getMethod(methodName, argumentTypes);
 		}
 	}
 
@@ -233,61 +234,5 @@ public class ReflectiveUtil {
 	}
 
 	private static final List<Class<?>> TOP_SUPER_CLASSES = Collections.singletonList(Object.class);
-
-	////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	// embedded utils
-
-	private static class EmbeddedStringUtil {
-		private static final String EMPTY = "";
-		private static final List<Character> SPACE_CHAR = Collections.unmodifiableList(Arrays.asList(' ', '　', '	'));
-		private static String FHTrim(String source) {
-			return FHLTrim(FHRTrim(source));
-		}
-		private static String FHLTrim(String source) {
-			if (source == null || source.equals(EMPTY)) {
-				return source;
-			}
-			int pos = 0;
-			for (int index = 0; index < source.length(); index ++) {
-				char c = source.charAt(index);
-				if (!SPACE_CHAR.contains(c)) {
-					break;
-				}
-				pos = index + 1;
-			}
-			if (pos > 0) {
-				return source.substring(pos);
-			}
-			return source;
-		}
-		private static String FHRTrim(String source) {
-			if (source == null || source.equals(EMPTY)) {
-				return source;
-			}
-			int pos = 0;
-			for (int index = source.length() - 1; index >= 0; index --) {
-				char c = source.charAt(index);
-				if (!SPACE_CHAR.contains(c)) {
-					break;
-				}
-				pos = index;
-			}
-			if (pos > 0) {
-				return source.substring(0, pos);
-			}
-			return source;
-		}
-
-		static boolean isNullOrBlank(String source) {
-			return source == null || FHTrim(source).length() == 0;
-		}
-
-		static String upperCamelCase(String source) {
-			if (isNullOrBlank(source)) {
-				return source;
-			}
-			return source.substring(0, 1).toUpperCase(Locale.getDefault()) + source.substring(1, source.length());
-		}
-	}
 
 }

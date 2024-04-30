@@ -3,6 +3,9 @@ A utility class that provides an assortment of reflective operation methods.
 
 ### Change log
 
+#### 1.1.11 (2024-04-30)
+*	Use **PropertyDescriptor** to fetch get and set methods.
+
 #### 1.1.10 (2024-04-28)
 *	Rollback modification in 1.1.9.
 
