@@ -16,7 +16,7 @@ import java.util.List;
  * <br>
  * This class Provides an assortment of reflective operation methods.<br>
  * All catchable exceptions thrown by this class are wrapped into <b>RuntimeException</b>s.
- * @version 1.1.11 - 2024-04-30
+ * @version 1.1.12 - 2024-05-03
  * @author scintilla0
  */
 @SuppressWarnings("unchecked")
@@ -25,12 +25,11 @@ public class ReflectiveUtil {
 	/**
 	 * Gets the <b>String</b> char sequence value of the specified field of the target instance.<br>
 	 * If the specified field does not exist in the target type and its super type, this method will throw a <b>NoSuchFieldException</b>.
-	 * @param <ObjectType> Target type.
 	 * @param object Target instance.
 	 * @param fieldName Specified field name.
 	 * @return Fetched <b>String</b> char sequence.
 	 */
-	public static <ObjectType> String getField(ObjectType object, String fieldName) {
+	public static String getField(Object object, String fieldName) {
 		return getField(object, fieldName, String.class);
 	}
 
@@ -38,14 +37,13 @@ public class ReflectiveUtil {
 	 * Gets the value of the specified field of the target instance.<br>
 	 * Uses the get method of the instance in preference to direct field value.<br>
 	 * If the specified field does not exist in the target type and its super type, this method will throw a <b>NoSuchFieldException</b>.
-	 * @param <ObjectType> Target type.
 	 * @param <ReturnType> Return type.
 	 * @param object Target instance.
 	 * @param fieldName Specified field name.
 	 * @param returnClass Class object of the return type.
 	 * @return Fetched <b>ReturnType</b> value.
 	 */
-	public static <ObjectType, ReturnType> ReturnType getField(ObjectType object, String fieldName, Class<ReturnType> returnClass) {
+	public static <ReturnType> ReturnType getField(Object object, String fieldName, Class<ReturnType> returnClass) {
 		try {
 			return (ReturnType) fetchPropertyDescriptor(object.getClass(), fieldName).getReadMethod().invoke(object);
 		} catch (IntrospectionException | NullPointerException | IllegalAccessException | InvocationTargetException caught) {
@@ -57,14 +55,13 @@ public class ReflectiveUtil {
 	/**
 	 * Gets the value of the specified field of the target instance.<br>
 	 * If the specified field does not exist in the target type and its super type, this method will throw a <b>NoSuchFieldException</b>.
-	 * @param <ObjectType> Target type.
 	 * @param <ReturnType> Return type.
 	 * @param object Target instance.
 	 * @param field Specified field.
 	 * @param returnClass Class object of the return type.
 	 * @return Fetched <b>ReturnType</b> value.
 	 */
-	public static <ObjectType, ReturnType> ReturnType getField(ObjectType object, Field field, Class<ReturnType> returnClass) {
+	public static <ReturnType> ReturnType getField(Object object, Field field, Class<ReturnType> returnClass) {
 		if (object == null) {
 			return null;
 		}
@@ -87,12 +84,11 @@ public class ReflectiveUtil {
 	 * Sets the value into the specified field of the target instance.<br>
 	 * Uses the set method of the instance in preference to direct field value.<br>
 	 * If the specified field does not exist in the target type and its super type, this method will throw a <b>NoSuchFieldException</b>.
-	 * @param <ObjectType> Target type.
 	 * @param object Target instance.
 	 * @param fieldName Specified field name.
 	 * @param value Value object to be set into the field.
 	 */
-	public static <ObjectType> void setField(ObjectType object, String fieldName, Object value) {
+	public static void setField(Object object, String fieldName, Object value) {
 		try {
 			fetchPropertyDescriptor(object.getClass(), fieldName).getWriteMethod().invoke(object, value);
 		} catch (IllegalArgumentException exception) {
@@ -106,12 +102,11 @@ public class ReflectiveUtil {
 	/**
 	 * Sets the value into the specified field of the target instance.<br>
 	 * If the specified field does not exist in the target type and its super type, this method will throw a <b>NoSuchFieldException</b>.
-	 * @param <ObjectType> Target type.
 	 * @param object Target instance.
 	 * @param field Specified field.
 	 * @param value Value object to be set into the field.
 	 */
-	public static <ObjectType> void setField(ObjectType object, Field field, Object value) {
+	public static void setField(Object object, Field field, Object value) {
 		if (object == null) {
 			return;
 		}
@@ -137,12 +132,11 @@ public class ReflectiveUtil {
 	/**
 	 * Fetches the specified field of the target type.<br>
 	 * If the specified field does not exist in the target type and its super type, this method will throw a <b>NoSuchFieldException</b>.
-	 * @param <ObjectType> Target type.
 	 * @param objectClass Class object of the target type.
 	 * @param fieldName Specified field name.
 	 * @return Fetched field.
 	 */
-	public static <ObjectType> Field fetchField(Class<ObjectType> objectClass, String fieldName) {
+	public static Field fetchField(Class<?> objectClass, String fieldName) {
 		Field field = null;
 		Class<?> superClass = objectClass;
 		while (field == null && superClass != null && !TOP_SUPER_CLASSES.contains(superClass)) {
@@ -162,13 +156,12 @@ public class ReflectiveUtil {
 	/**
 	 * Fetches the specified method of the target type.<br>
 	 * If the specified method does not exist in the target type and its super type, this method will throw a <b>NoSuchMethodException</b>.
-	 * @param <ObjectType> Target type.
 	 * @param objectClass Class object of the target type.
 	 * @param methodName Specified method name.
 	 * @param argumentTypes Class objects of the specified method's argument types.
 	 * @return Fetched method.
 	 */
-	public static <ObjectType> Method fetchMethod(Class<ObjectType> objectClass, String methodName, Class<?>... argumentTypes) {
+	public static Method fetchMethod(Class<?> objectClass, String methodName, Class<?>... argumentTypes) {
 		try {
 			try {
 				return objectClass.getDeclaredMethod(methodName, argumentTypes);
