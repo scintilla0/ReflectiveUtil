@@ -3,6 +3,9 @@ A utility class that provides an assortment of reflective operation methods.
 
 ### Change log
 
+#### 1.1.13 (2024-08-10)
+*	Add method **invokeMethod()**.
+
 #### 1.1.12 (2024-05-03)
 *	Remove unused type parameters.
 

@@ -16,7 +16,7 @@ import java.util.List;
  * <br>
  * This class Provides an assortment of reflective operation methods.<br>
  * All catchable exceptions thrown by this class are wrapped into <b>RuntimeException</b>s.
- * @version 1.1.12 - 2024-05-03
+ * @version 1.1.13 - 2024-08-10
  * @author scintilla0
  */
 @SuppressWarnings("unchecked")
@@ -171,6 +171,83 @@ public class ReflectiveUtil {
 		} catch (NoSuchMethodException exception) {
 			throw new RuntimeException(exception);
 		}
+	}
+
+	/**
+	 * Fetches the specified method of the target type and then invoke it.<br>
+	 * If the specified method does not exist in the target type and its super type, this method will throw a <b>NoSuchMethodException</b>.
+	 * If there is an exception occuring during invoking process, this method will throw it out.
+	 * @param object Target instance.
+	 * @param methodName Specified method name.
+	 * @param arguments Arguments used in the specified method.
+	 * @return Fetched method.
+	 */
+	public static Object invokeMethod(Object object, String methodName, Object... arguments) {
+		try {
+			Method method = null;
+			try {
+				Class<?>[] argumentTypes = Arrays.stream(arguments).map(argument -> argument != null ? argument.getClass() : Object.class).toArray(Class<?>[]::new);
+				method = fetchMethod(object.getClass(), methodName, argumentTypes);
+			} catch (RuntimeException caught) {
+				if (!(caught.getCause() instanceof NoSuchMethodException)) {
+					throw caught;
+				}
+				if ((method = looseFetchMethod(object.getClass(), methodName, arguments)) == null) {
+					try {
+						return looseFetchAndInvokeVarArgsMethod(object, methodName, arguments);
+					} catch (NoSuchMethodException ignored) {
+						throw caught;
+					}
+				}
+			}
+			return method.invoke(object, arguments);
+		} catch (IllegalAccessException | InvocationTargetException exception) {
+			throw new RuntimeException(exception);
+		}
+	}
+
+	private static Method looseFetchMethod(Class<?> objectClass, String methodName, Object... arguments) {
+		forMethod: for (Method method : Arrays.stream(objectClass.getMethods()).filter(method -> method.getName().equals(methodName)).toArray(Method[]::new)) {
+			if (method.getParameterTypes().length == arguments.length) {
+				for (int index = 0; index < method.getParameterTypes().length; index ++) {
+					if (!matchType(arguments[index], method.getParameterTypes()[index])) {
+						continue forMethod;
+					}
+				}
+				return method;
+			}
+		}
+		return null;
+	}
+
+	private static Object looseFetchAndInvokeVarArgsMethod(Object object, String methodName, Object... arguments) throws NoSuchMethodException {
+		forMethod: for (Method method : Arrays.stream(object.getClass().getMethods()).filter(method -> method.getName().equals(methodName)).toArray(Method[]::new)) {
+			if (method.isVarArgs()) {
+				int parameterLength = method.getParameterTypes().length;
+				Object[] fullArguments = new Object[parameterLength];
+				for (int index = 0; index < parameterLength - 1; index ++) {
+					if (!(arguments[index] != null ? arguments[index].getClass() : Object.class).isAssignableFrom(method.getParameterTypes()[index])) {
+						continue forMethod;
+					}
+					fullArguments[index] = arguments[index];
+				}
+				Object[] varArguments = new Object[arguments.length - parameterLength + 1];
+				Class<?> varArgumentsType = method.getParameterTypes()[parameterLength - 1].getComponentType();
+				for (int index = parameterLength - 1, varIndex = 0; index < arguments.length; index ++, varIndex ++) {
+					if (!matchType(arguments[index], varArgumentsType)) {
+						continue forMethod;
+					}
+					varArguments[varIndex] = arguments[index];
+				}
+				fullArguments[parameterLength - 1] = varArguments;
+				try {
+					return method.invoke(object, fullArguments);
+				} catch (IllegalAccessException |  InvocationTargetException exception) {
+					throw new RuntimeException(exception);
+				}
+			}
+		}
+		throw new NoSuchMethodException();
 	}
 
 	/**
