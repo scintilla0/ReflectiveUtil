@@ -7,7 +7,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Copyright (c) 2024 scintilla0 (<a href="https://github.com/scintilla0">https://github.com/scintilla0</a>)<br>
@@ -16,7 +18,7 @@ import java.util.List;
  * <br>
  * This class Provides an assortment of reflective operation methods.<br>
  * All catchable exceptions thrown by this class are wrapped into <b>RuntimeException</b>s.
- * @version 1.1.13 - 2024-08-10
+ * @version 1.1.14 - 2024-08-19
  * @author scintilla0
  */
 @SuppressWarnings("unchecked")
@@ -65,7 +67,7 @@ public class ReflectiveUtil {
 		if (object == null) {
 			return null;
 		}
-		if (!returnClass.isAssignableFrom(field.getType()) && !returnClass.equals(Object.class)) {
+		if (!matchTypeClass(field.getType(), returnClass) && !returnClass.equals(Object.class)) {
 			throw new IllegalArgumentException("Incorrect return type: " + returnClass.getName());
 		}
 		boolean isAccessible = field.isAccessible();
@@ -110,7 +112,7 @@ public class ReflectiveUtil {
 		if (object == null) {
 			return;
 		}
-		if (value != null && (!field.getType().isAssignableFrom(value.getClass()) && !field.getType().equals(Object.class))) {
+		if (value != null && (!matchTypeClass(value.getClass(), field.getType()) && !field.getType().equals(Object.class))) {
 			throw new IllegalArgumentException("Incorrect value type: " + value.getClass().getName());
 		}
 		boolean isAccessible = field.isAccessible();
@@ -226,7 +228,7 @@ public class ReflectiveUtil {
 				int parameterLength = method.getParameterTypes().length;
 				Object[] fullArguments = new Object[parameterLength];
 				for (int index = 0; index < parameterLength - 1; index ++) {
-					if (!(arguments[index] != null ? arguments[index].getClass() : Object.class).isAssignableFrom(method.getParameterTypes()[index])) {
+					if (!matchTypeClass(arguments[index] != null ? arguments[index].getClass() : Object.class, method.getParameterTypes()[index])) {
 						continue forMethod;
 					}
 					fullArguments[index] = arguments[index];
@@ -276,33 +278,49 @@ public class ReflectiveUtil {
 	}
 
 	/**
+	 * Evaluates whether the object class matches the target class.<br>
+	 * @param objectClass Class of the target object.
+	 * @param targetClass Target class.
+	 * @return {@code true} if matches.
+	 */
+	public static boolean matchTypeClass(Class<?> objectClass, Class<?> targetClass) {
+		for (Map.Entry<Class<?>, Class<?>> entry : BASIC_CLASS_MAP.entrySet()) {
+			if (targetClass.equals(entry.getKey()) || targetClass.equals(entry.getValue())) {
+				return entry.getValue().isAssignableFrom(objectClass) || targetClass.isAssignableFrom(objectClass);
+			}
+		}
+		return targetClass.isAssignableFrom(objectClass);
+	}
+
+	/**
 	 * Evaluates whether the object matches the target class.<br>
 	 * @param object Target object.
-	 * @param targetClass TargetClass.
+	 * @param targetClass Target class.
 	 * @return {@code true} if matches.
 	 */
 	public static boolean matchType(Object object, Class<?> targetClass) {
-		if (targetClass.equals(byte.class) || targetClass.equals(Byte.class)) {
-			return object instanceof Byte;
-		} else if (targetClass.equals(short.class) || targetClass.equals(Short.class)) {
-			return object instanceof Short;
-		} else if (targetClass.equals(int.class) || targetClass.equals(Integer.class)) {
-			return object instanceof Integer;
-		} else if (targetClass.equals(long.class) || targetClass.equals(Long.class)) {
-			return object instanceof Long;
-		} else if (targetClass.equals(float.class) || targetClass.equals(Float.class)) {
-			return object instanceof Float;
-		} else if (targetClass.equals(double.class) || targetClass.equals(Double.class)) {
-			return object instanceof Double;
-		} else if (targetClass.equals(boolean.class) || targetClass.equals(Boolean.class)) {
-			return object instanceof Boolean;
-		} else if (targetClass.equals(char.class) || targetClass.equals(Character.class)) {
-			return object instanceof Character;
-		} else {
-			return targetClass.isInstance(object);
+		for (Map.Entry<Class<?>, Class<?>> entry : BASIC_CLASS_MAP.entrySet()) {
+			if (targetClass.equals(entry.getKey()) || targetClass.equals(entry.getValue())) {
+				return entry.getKey().isInstance(object);
+			}
 		}
+		return targetClass.isInstance(object);
 	}
 
 	private static final List<Class<?>> TOP_SUPER_CLASSES = Collections.singletonList(Object.class);
+	private static final Map<Class<?>, Class<?>> BASIC_CLASS_MAP;
+
+	static {
+		Map<Class<?>, Class<?>> basicClassMap = new HashMap<>();
+		basicClassMap.put(Byte.class, byte.class);
+		basicClassMap.put(Short.class, short.class);
+		basicClassMap.put(Integer.class, int.class);
+		basicClassMap.put(Long.class, long.class);
+		basicClassMap.put(Float.class, float.class);
+		basicClassMap.put(Double.class, double.class);
+		basicClassMap.put(Boolean.class, boolean.class);
+		basicClassMap.put(Character.class, char.class);
+		BASIC_CLASS_MAP = Collections.unmodifiableMap(basicClassMap);
+	}
 
 }

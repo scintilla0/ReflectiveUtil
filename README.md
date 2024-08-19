@@ -3,6 +3,10 @@ A utility class that provides an assortment of reflective operation methods.
 
 ### Change log
 
+#### 1.1.14 (2024-08-19)
+*	Add method **matchTypeClass()**.
+*	Fix a mistake causing incorrect result in method **looseFetchAndInvokeVarArgsMethod()**.
+
 #### 1.1.13 (2024-08-10)
 *	Add method **invokeMethod()**.
 
