@@ -18,7 +18,7 @@ import java.util.Map;
  * <br>
  * This class Provides an assortment of reflective operation methods.<br>
  * All catchable exceptions thrown by this class are wrapped into <b>RuntimeException</b>s.
- * @version 1.1.14 - 2024-08-19
+ * @version 1.1.15 - 2024-08-20
  * @author scintilla0
  */
 @SuppressWarnings("unchecked")
@@ -67,7 +67,7 @@ public class ReflectiveUtil {
 		if (object == null) {
 			return null;
 		}
-		if (!matchTypeClass(field.getType(), returnClass) && !returnClass.equals(Object.class)) {
+		if (!matchClass(field.getType(), returnClass) && !returnClass.equals(Object.class)) {
 			throw new IllegalArgumentException("Incorrect return type: " + returnClass.getName());
 		}
 		boolean isAccessible = field.isAccessible();
@@ -112,7 +112,7 @@ public class ReflectiveUtil {
 		if (object == null) {
 			return;
 		}
-		if (value != null && (!matchTypeClass(value.getClass(), field.getType()) && !field.getType().equals(Object.class))) {
+		if (value != null && (!matchClass(value.getClass(), field.getType()) && !field.getType().equals(Object.class))) {
 			throw new IllegalArgumentException("Incorrect value type: " + value.getClass().getName());
 		}
 		boolean isAccessible = field.isAccessible();
@@ -228,7 +228,7 @@ public class ReflectiveUtil {
 				int parameterLength = method.getParameterTypes().length;
 				Object[] fullArguments = new Object[parameterLength];
 				for (int index = 0; index < parameterLength - 1; index ++) {
-					if (!matchTypeClass(arguments[index] != null ? arguments[index].getClass() : Object.class, method.getParameterTypes()[index])) {
+					if (!matchClass(arguments[index] != null ? arguments[index].getClass() : Object.class, method.getParameterTypes()[index])) {
 						continue forMethod;
 					}
 					fullArguments[index] = arguments[index];
@@ -283,7 +283,7 @@ public class ReflectiveUtil {
 	 * @param targetClass Target class.
 	 * @return {@code true} if matches.
 	 */
-	public static boolean matchTypeClass(Class<?> objectClass, Class<?> targetClass) {
+	public static boolean matchClass(Class<?> objectClass, Class<?> targetClass) {
 		for (Map.Entry<Class<?>, Class<?>> entry : BASIC_CLASS_MAP.entrySet()) {
 			if (targetClass.equals(entry.getKey()) || targetClass.equals(entry.getValue())) {
 				return entry.getValue().isAssignableFrom(objectClass) || targetClass.isAssignableFrom(objectClass);

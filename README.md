@@ -3,6 +3,9 @@ A utility class that provides an assortment of reflective operation methods.
 
 ### Change log
 
+#### 1.1.15 (2024-08-20)
+*	Change method name from ~~**matchTypeClass()**~~ to **matchClass()**.
+
 #### 1.1.14 (2024-08-19)
 *	Add method **matchTypeClass()**.
 *	Fix a mistake causing incorrect result in method **looseFetchAndInvokeVarArgsMethod()**.
