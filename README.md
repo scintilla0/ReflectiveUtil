@@ -1,7 +1,10 @@
-# ReflectiveUtil
+# ReflectiveUtils
 A utility class that provides an assortment of reflective operation methods.
 
 ### Change log
+
+#### 1.1.16 (2025-03-25)
+*	Renamed to **ReflectiveUtils**.
 
 #### 1.1.15 (2024-08-20)
 *	Change method name from ~~**matchTypeClass()**~~ to **matchClass()**.

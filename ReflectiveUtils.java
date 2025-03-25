@@ -18,11 +18,11 @@ import java.util.Map;
  * <br>
  * This class Provides an assortment of reflective operation methods.<br>
  * All catchable exceptions thrown by this class are wrapped into <b>RuntimeException</b>s.
- * @version 1.1.15 - 2024-08-20
+ * @version 1.1.16 - 2025-03-25
  * @author scintilla0
  */
 @SuppressWarnings("unchecked")
-public class ReflectiveUtil {
+public class ReflectiveUtils {
 
 	/**
 	 * Gets the <b>String</b> char sequence value of the specified field of the target instance.<br>
@@ -278,7 +278,7 @@ public class ReflectiveUtil {
 	}
 
 	/**
-	 * Evaluates whether the object class matches the target class.<br>
+	 * Evaluates whether the object class matches the target class.
 	 * @param objectClass Class of the target object.
 	 * @param targetClass Target class.
 	 * @return {@code true} if matches.
@@ -293,7 +293,7 @@ public class ReflectiveUtil {
 	}
 
 	/**
-	 * Evaluates whether the object matches the target class.<br>
+	 * Evaluates whether the object matches the target class.
 	 * @param object Target object.
 	 * @param targetClass Target class.
 	 * @return {@code true} if matches.
